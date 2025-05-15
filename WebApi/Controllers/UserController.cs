@@ -44,11 +44,6 @@ namespace WebApi.Controllers
             }
         }
 
-        private HttpResponseMessage Conflict(string message)
-        {
-            return Request.CreateResponse(System.Net.HttpStatusCode.Conflict, new { error = message });
-        }
-
         [Route("{userId:guid}/update")]
         [HttpPost]
         public HttpResponseMessage UpdateUser(Guid userId, [FromBody] UserModel model)
@@ -106,7 +101,15 @@ namespace WebApi.Controllers
         [HttpGet]
         public HttpResponseMessage GetUsersByTag(string tag)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(tag))
+                return BadApiRequest("Tag value is required.");
+
+            var users = _getUserService.GetUsers(null, null, null)
+                        .Where(u => u.Tags != null && u.Tags.Any(t => t.Equals(tag, StringComparison.OrdinalIgnoreCase)))
+                        .Select(u => new UserData(u))
+                        .ToList();
+
+            return Found(users);
         }
     }
 }
