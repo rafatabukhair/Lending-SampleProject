@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using System.Reflection;
 using BusinessEntities;
@@ -24,10 +23,8 @@ namespace Core.Services.Users
             _updateUserService = updateUserService;
         }
 
-        public User Create(Guid id, string name, string email, UserTypes type, decimal? annualSalary, IEnumerable<string> tags)
+        public User Create(Guid id, string name, string email, UserTypes type, decimal? annualSalary, IEnumerable<string> tags, List<string> minimumFields, List<string> dedupFields)
         {
-            var dedupFields = ConfigurationManager.AppSettings["UserDeduplicationFields"]?.Split(',').Select(x => x.Trim().ToLower()).ToList();
-            
             if (dedupFields != null || dedupFields.Count > 0)
             {
                 var existingUsers = _userRepository.Get().ToList();
@@ -42,10 +39,21 @@ namespace Core.Services.Users
 
                 if (isDuplicate)
                     throw new InvalidOperationException("User already exists based on deduplication fields.");
-            }               
+            } 
+            else
+            {
+                var valid = minimumFields.Any(field =>
+                {
+                    var value = GetInputFieldValue(field, name, email, type, annualSalary, tags);
+                    return !string.IsNullOrWhiteSpace(value);
+                });
+
+                if (!valid)
+                    throw new InvalidOperationException("User must have at least one identifying field populated.");
+            }
 
             var user = _userFactory.Create(id);
-            _updateUserService.Update(user, name, email, type, annualSalary, tags);
+            _updateUserService.Update(user, name, email, type, annualSalary, tags, dedupFields);
             _userRepository.Save(user);
             return user;
         }
@@ -56,7 +64,7 @@ namespace Core.Services.Users
             return prop?.GetValue(user)?.ToString()?.ToLowerInvariant();
         }
 
-        private string GetInputFieldValue(string field, string name, string email, UserTypes type, decimal? annualSalary)
+        private string GetInputFieldValue(string field, string name, string email, UserTypes type, decimal? annualSalary, IEnumerable<string> tags = null)
         {
             switch (field)
             {
@@ -64,6 +72,7 @@ namespace Core.Services.Users
                 case "email": return email?.ToLowerInvariant();
                 case "type": return type.ToString().ToLowerInvariant();
                 case "annualSalary": return annualSalary?.ToString();
+                case "tags": return tags != null && tags.Any() ? string.Join(",", tags) : null;
                 default: return null;
             }
         }

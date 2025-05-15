@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Net.Http;
 using System.Web.Http;
@@ -15,6 +17,7 @@ namespace WebApi.Controllers
         private readonly IDeleteUserService _deleteUserService;
         private readonly IGetUserService _getUserService;
         private readonly IUpdateUserService _updateUserService;
+        private readonly List<string> _minimumFields, _dedupFields;
 
         public UserController(ICreateUserService createUserService, IDeleteUserService deleteUserService, IGetUserService getUserService, IUpdateUserService updateUserService)
         {
@@ -22,6 +25,8 @@ namespace WebApi.Controllers
             _deleteUserService = deleteUserService;
             _getUserService = getUserService;
             _updateUserService = updateUserService;
+            _minimumFields = ConfigurationManager.AppSettings["UserMinimumFields"]?.Split(',').Select(x => x.Trim().ToLower()).ToList();
+            _dedupFields = ConfigurationManager.AppSettings["UserDeduplicationFields"]?.Split(',').Select(x => x.Trim().ToLower()).ToList();
         }
 
         [Route("{userId:guid}/create")]
@@ -30,7 +35,7 @@ namespace WebApi.Controllers
         {
             try
             {
-                var user = _createUserService.Create(userId, model.Name, model.Email, model.Type, model.AnnualSalary, model.Tags);
+                var user = _createUserService.Create(userId, model.Name, model.Email, model.Type, model.AnnualSalary, model.Tags, _minimumFields, _dedupFields);
                 return Found(new UserData(user));
             }
             catch (InvalidOperationException ex)
@@ -53,7 +58,7 @@ namespace WebApi.Controllers
             {
                 return DoesNotExist();
             }
-            _updateUserService.Update(user, model.Name, model.Email, model.Type, model.AnnualSalary, model.Tags);
+            _updateUserService.Update(user, model.Name, model.Email, model.Type, model.AnnualSalary, model.Tags, _dedupFields);
             return Found(new UserData(user));
         }
 
