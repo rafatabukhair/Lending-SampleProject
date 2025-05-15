@@ -28,8 +28,20 @@ namespace WebApi.Controllers
         [HttpPost]
         public HttpResponseMessage CreateUser(Guid userId, [FromBody] UserModel model)
         {
-            var user = _createUserService.Create(userId, model.Name, model.Email, model.Type, model.AnnualSalary, model.Tags);
-            return Found(new UserData(user));
+            try
+            {
+                var user = _createUserService.Create(userId, model.Name, model.Email, model.Type, model.AnnualSalary, model.Tags);
+                return Found(new UserData(user));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
+        }
+
+        private HttpResponseMessage Conflict(string message)
+        {
+            return Request.CreateResponse(System.Net.HttpStatusCode.Conflict, new { error = message });
         }
 
         [Route("{userId:guid}/update")]
