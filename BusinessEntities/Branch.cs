@@ -20,7 +20,7 @@ namespace BusinessEntities
         {
             if (string.IsNullOrEmpty(name))
             {
-                throw new ArgumentNullException("Name was not provided.");
+                throw new ArgumentNullException("Branch name was not provided.");
             }
             _name = name;
         }

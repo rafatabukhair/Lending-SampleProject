@@ -1,0 +1,9 @@
+﻿# POST http://localhost:49834/products/1422740e-6426-4c46-8445-3f5274a62424/create
+# Content-Type: application/json
+# {
+#   "name": "P1",
+#   "price": 1.0,
+#   "category": "Car"
+# }
+
+GET http://localhost:49834/products/list

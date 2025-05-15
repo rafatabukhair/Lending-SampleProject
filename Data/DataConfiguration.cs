@@ -5,6 +5,7 @@ using Raven.Client.Documents;
 using Raven.Client.Documents.Indexes;
 using Raven.Client.Documents.Conventions;
 using SimpleInjector;
+using Data.Repositories;
 
 namespace Data
 {
@@ -28,6 +29,12 @@ namespace Data
                                    session.Advanced.MaxNumberOfRequestsPerSession = 5000;
                                    return session;
                                }, lifestyle);
+
+            //container.RegisterConditional(
+            //    typeof(IInMemoryRepository<>),
+            //    typeof(InMemoryRepository<>),
+            //    Lifestyle.Singleton,
+            //    _ => true);
         }
 
         private static IDocumentStore InitializeDocumentStore(Assembly assembly, bool createIndexes)
