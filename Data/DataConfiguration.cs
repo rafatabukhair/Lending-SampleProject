@@ -29,12 +29,6 @@ namespace Data
                                    session.Advanced.MaxNumberOfRequestsPerSession = 5000;
                                    return session;
                                }, lifestyle);
-
-            //container.RegisterConditional(
-            //    typeof(IInMemoryRepository<>),
-            //    typeof(InMemoryRepository<>),
-            //    Lifestyle.Singleton,
-            //    _ => true);
         }
 
         private static IDocumentStore InitializeDocumentStore(Assembly assembly, bool createIndexes)

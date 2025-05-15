@@ -10,7 +10,7 @@ using Raven.Client.Documents.Queries;
 
 namespace Data.Repositories
 {
-    [AutoRegister]
+    [AutoRegister(AutoRegisterTypes.Singleton)]
     public class InMemoryRepository<T> : IInMemoryRepository<T> where T : class
     {
         private readonly List<T> _items = new List<T>();

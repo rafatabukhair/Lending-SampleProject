@@ -2,114 +2,92 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
-using System.Net.Http;
+using System.Reflection;
 using System.Web.Http;
 using BusinessEntities;
-using Core.Services.Users;
-using WebApi.Models.Users;
+using Data.Repositories;
 
 namespace WebApi.Controllers
 {
     [RoutePrefix("orders")]
-    public class OrderController : BaseApiController
+    public class OrderController : ApiController
     {
-        private readonly ICreateUserService _createUserService;
-        private readonly IDeleteUserService _deleteUserService;
-        private readonly IGetUserService _getUserService;
-        private readonly IUpdateUserService _updateUserService;
-        private readonly List<string> _minimumFields, _dedupFields;
+        private readonly IInMemoryRepository<Order> _repo;
 
-        public OrderController(ICreateUserService createUserService, IDeleteUserService deleteUserService, IGetUserService getUserService, IUpdateUserService updateUserService)
+        public OrderController(IInMemoryRepository<Order> repo)
         {
-            _createUserService = createUserService;
-            _deleteUserService = deleteUserService;
-            _getUserService = getUserService;
-            _updateUserService = updateUserService;
-            _minimumFields = ConfigurationManager.AppSettings["UserMinimumFields"]?.Split(',').Select(x => x.Trim().ToLower()).ToList();
-            _dedupFields = ConfigurationManager.AppSettings["UserDeduplicationFields"]?.Split(',').Select(x => x.Trim().ToLower()).ToList();
+            _repo = repo;
         }
 
-        [Route("{userId:guid}/create")]
         [HttpPost]
-        public HttpResponseMessage CreateUser(Guid userId, [FromBody] UserModel model)
+        [Route("{orderId:guid}/create")]
+        public IHttpActionResult Create(Guid orderId, [FromBody] Order order)
         {
-            try
+            order.Id = orderId.ToString();
+
+            var dedupFields = ConfigurationManager.AppSettings["OrderDeduplicationFields"]
+                ?.Split(',')
+                .Select(f => f.Trim())
+                .ToList();
+
+            if (dedupFields != null && dedupFields.Count > 0)
             {
-                var user = _createUserService.Create(userId, model.Name, model.Email, model.Type, model.AnnualSalary, model.Tags, _minimumFields, _dedupFields);
-                return Found(new UserData(user));
+                var isDuplicate = _repo.GetAll().Any(existing =>
+                    dedupFields.All(field =>
+                        GetFieldValue(existing, field) == GetFieldValue(order, field)
+                    ));
+
+                if (isDuplicate)
+                    return Conflict();
             }
-            catch (InvalidOperationException ex)
-            {
-                return Conflict(ex.Message);
-            }
+
+            _repo.Create(order);
+            return Ok(order);
         }
 
-        [Route("{userId:guid}/update")]
         [HttpPost]
-        public HttpResponseMessage UpdateUser(Guid userId, [FromBody] UserModel model)
+        [Route("{orderId:guid}/update")]
+        public IHttpActionResult Update(Guid orderId, [FromBody] Order order)
         {
-            var user = _getUserService.GetUser(userId);
-            if (user == null)
-            {
-                return DoesNotExist();
-            }
-            _updateUserService.Update(user, model.Name, model.Email, model.Type, model.AnnualSalary, model.Tags, _dedupFields);
-            return Found(new UserData(user));
+            order.Id = orderId.ToString();
+            _repo.Update(order);
+            return Ok(order);
         }
 
-        [Route("{userId:guid}/delete")]
         [HttpDelete]
-        public HttpResponseMessage DeleteUser(Guid userId)
+        [Route("{orderId:guid}/delete")]
+        public IHttpActionResult Delete(string orderId)
         {
-            var user = _getUserService.GetUser(userId);
-            if (user == null)
-            {
-                return DoesNotExist();
-            }
-            _deleteUserService.Delete(user);
-            return Found();
+            _repo.Delete(orderId);
+            return Ok();
         }
 
-        [Route("{userId:guid}")]
         [HttpGet]
-        public HttpResponseMessage GetUser(Guid userId)
+        [Route("{orderId:guid}")]
+        public IHttpActionResult Get(string orderId)
         {
-            var user = _getUserService.GetUser(userId);
-            return Found(new UserData(user));
+            return Ok(_repo.GetById(orderId));
         }
 
+        [HttpGet]
         [Route("list")]
-        [HttpGet]
-        public HttpResponseMessage GetUsers(int skip, int take, UserTypes? type = null, string name = null, string email = null)
+        public IHttpActionResult GetAll(decimal? minTotal = null, string productId = null, DateTime? fromDate = null)
         {
-            var users = _getUserService.GetUsers(type, name, email)
-                                       .Skip(skip).Take(take)
-                                       .Select(q => new UserData(q))
-                                       .ToList();
-            return Found(users);
+            var orders = _repo.GetAll(o =>
+                (!minTotal.HasValue || o.Total >= minTotal.Value) &&
+                (string.IsNullOrEmpty(productId) || o.OrderItems.Any(i => i.ProductId == productId)) &&
+                (!fromDate.HasValue || o.OrderDate > fromDate.Value)
+            );
+
+            return Ok(orders);
         }
 
-        [Route("clear")]
-        [HttpDelete]
-        public HttpResponseMessage DeleteAllUsers()
+        // Utility: Get a string field value via reflection
+        private string GetFieldValue(Order order, string fieldName)
         {
-            _deleteUserService.DeleteAll();
-            return Found();
-        }
-
-        [Route("list/tag")]
-        [HttpGet]
-        public HttpResponseMessage GetUsersByTag(string tag)
-        {
-            if (string.IsNullOrWhiteSpace(tag))
-                return BadApiRequest("Tag value is required.");
-
-            var users = _getUserService.GetUsers(null, null, null)
-                        .Where(u => u.Tags != null && u.Tags.Any(t => t.Equals(tag, StringComparison.OrdinalIgnoreCase)))
-                        .Select(u => new UserData(u))
-                        .ToList();
-
-            return Found(users);
+            var prop = typeof(Order).GetProperty(fieldName, BindingFlags.Public | BindingFlags.Instance);
+            var value = prop?.GetValue(order);
+            return value?.ToString()?.Trim().ToLowerInvariant();
         }
     }
 }

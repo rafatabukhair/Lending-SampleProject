@@ -1,0 +1,39 @@
+﻿### Create Order
+POST http://localhost:49834/orders/11111111-1111-1111-1111-111111111111/create
+Content-Type: application/json
+{
+  "customer": "John Smith",
+  "orderDate": "2024-05-01T00:00:00",
+  "orderItems": [
+    { "productId": "P1", "quantity": 2, "itemPrice": 10.5 },
+    { "productId": "P2", "quantity": 1, "itemPrice": 20 }
+  ]
+}
+
+### Get All Orders
+GET http://localhost:49834/orders/list
+
+### Create Order
+POST http://localhost:49834/orders/11111111-1111-1111-1111-111111111111/create
+Content-Type: application/json
+
+{
+  "customer": "Alice",
+  "orderDate": "2024-05-10T00:00:00",
+  "orderItems": [
+    { "productId": "P1", "quantity": 2, "itemPrice": 12 },
+    { "productId": "P2", "quantity": 1, "itemPrice": 25 }
+  ]
+}
+
+### Filter: minTotal
+GET http://localhost:49834/orders/list?minTotal=40
+
+### Filter: contains product
+GET http://localhost:49834/orders/list?productId=P2
+
+### Filter: from date
+GET http://localhost:49834/orders/list?fromDate=2024-05-01
+
+### Combine filters
+GET http://localhost:49834/orders/list?minTotal=20&productId=P2&fromDate=2024-05-01

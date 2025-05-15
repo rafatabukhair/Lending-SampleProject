@@ -6,7 +6,7 @@ namespace BusinessEntities
 {
     public abstract class IdObject
     {
-        public string Id { get; protected set; } = Guid.NewGuid().ToString();
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
         public bool EqualsById(IdObject other)
         {

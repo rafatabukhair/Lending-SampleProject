@@ -289,6 +289,7 @@
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Tests\test.http" />
     <Content Include="Tests\testProduct.http" />
+    <Content Include="Tests\testOrder.http" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff2" />
