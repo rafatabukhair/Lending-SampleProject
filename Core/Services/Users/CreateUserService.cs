@@ -52,7 +52,11 @@ namespace Core.Services.Users
                     throw new InvalidOperationException("User must have at least one identifying field populated.");
             }
 
-            var user = _userFactory.Create(id);
+            var existingUser = _userRepository.Get(id);
+            if (existingUser != null)
+                throw new InvalidOperationException($"User with ID '{id}' already exists.");
+
+            var user = _userFactory.Create(id.ToString());
             _updateUserService.Update(user, name, email, type, annualSalary, tags, dedupFields);
             _userRepository.Save(user);
             return user;

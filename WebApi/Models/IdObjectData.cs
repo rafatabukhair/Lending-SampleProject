@@ -5,7 +5,7 @@ namespace WebApi.Models
 {
     public abstract class IdObjectData
     {
-        public IdObjectData(Guid id)
+        public IdObjectData(string id)
         {
             Id = id;
         }
@@ -14,6 +14,6 @@ namespace WebApi.Models
         {
         }
 
-        public Guid Id { get; set; }
+        public string Id { get; set; }
     }
 }

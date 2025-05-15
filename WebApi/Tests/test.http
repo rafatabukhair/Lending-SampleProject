@@ -1,0 +1,73 @@
+﻿# POST http://localhost:49834/users/1422740e-6426-4c46-8445-3f5274a62424/create
+# Content-Type: application/json
+# {
+#     "name": "John Smith",
+#     "email": "mark@companya.com",
+#     "type": 2,
+#     "age": 27,
+#     "annualSalary": 72000,
+#     "tags": ["A", "C", "D"]
+# }
+# POST http://localhost:49834/users/9422740e-6426-4c46-8445-3f5274a62424/create
+# Content-Type: application/json
+# {
+#     "name": "Mark Williams",
+#     "email": "mark@companya.com",
+#     "type": 1,
+#     "age": 35,
+#     "annualSalary": 120000,
+#     "tags": ["b", "c", "e"]
+# }
+# POST http://localhost:49834/users/8722740e-6426-4c46-8445-3f5274a62424/create
+# Content-Type: application/json
+# {
+#     "name": "Andy",
+#     "email": "andy@companya.com",
+#     "type": 2,
+#     "age": 34,
+#     "annualSalary": 86000,
+#     "tags": ["D"]
+# }
+# POST http://localhost:49834/users/1422740e-6426-4c46-8445-3f5274a62424/create
+# Content-Type: application/json
+# {
+#     "name": "Mary",
+#     "email": "mary@companya.com",
+#     "type": 1,
+#     "age": 29,
+#     "annualSalary": 80000,
+#     "tags": []
+# }
+# POST http://localhost:49834/users/9422740e-6426-4c46-8445-3f5274a62424/update
+# Content-Type: application/json
+# {
+#     "name": "Mark Williams (updated)",
+#     "email": null,
+#     "type": 2,
+#     "age": 29,
+#     "annualSalary": 80000,
+#     "tags": ["A", "C", "D"]
+# }
+
+# POST http://localhost:49834/users/9422740e-6426-4c46-8445-3f5274a62424/update
+# Content-Type: application/json
+# {
+#     "name": "Mark Williams",
+#     "email": "mark@companya.com",
+#     "type": 1,
+#     "age": 29,
+#     "annualSalary": null,
+#     "tags": ["A", "C", "D"]
+# }
+# POST http://localhost:49834/users/9422740e-6426-4c46-8445-3f5274a62424/update
+# Content-Type: application/json
+# {
+#     "name": "Mark Williams",
+#     "email": "mark@companya.com",
+#     "type": 1,
+#     "age": 29,
+#     "annualSalary": 152000,
+#     "tags": null
+# }
+
+GET http://localhost:49834/users/list/tag?tag=C

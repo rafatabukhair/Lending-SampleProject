@@ -6,25 +6,27 @@ namespace BusinessEntities
 {
     public abstract class IdObject
     {
-        private Guid _id = Guid.NewGuid();
+        //private Guid _id = Guid.NewGuid();
 
-        public Guid Id
-        {
-            get => _id;
-            private set => _id = value;
-        }
+        public string Id { get; protected set; } = $"{Guid.NewGuid()}";
+
+        //public Guid Id
+        //{
+        //    get => _id;
+        //    protected set => _id = value;
+        //}
 
         public bool EqualsById(IdObject other)
         {
             return other != null && Id.Equals(other.Id);
         }
 
-        public static T GetById<T>(IEnumerable<T> items, Guid id) where T : IdObject
+        public static T GetById<T>(IEnumerable<T> items, string id) where T : IdObject
         {
             return items.FirstOrDefault(item => item.Id == id);
         }
 
-        public static IList<Guid> Ids<T>(IEnumerable<T> items) where T : IdObject
+        public static IList<string> Ids<T>(IEnumerable<T> items) where T : IdObject
         {
             return items.Select(q => q.Id).ToList();
         }
