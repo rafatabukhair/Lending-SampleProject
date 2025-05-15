@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Raven.Client.Documents.Session;
+using System;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Filters;
-using Raven.Client;
 
 namespace WebApi.App_Start
 {

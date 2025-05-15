@@ -3,7 +3,9 @@ using System.Linq;
 using BusinessEntities;
 using Common;
 using Data.Indexes;
-using Raven.Client;
+using Raven.Client.Documents.Session;
+using Raven.Client.Documents.Linq;
+using Raven.Client.Documents;
 
 namespace Data.Repositories
 {
@@ -19,35 +21,21 @@ namespace Data.Repositories
 
         public IEnumerable<User> Get(UserTypes? userType = null, string name = null, string email = null)
         {
-            var query = _documentSession.Advanced.DocumentQuery<User, UsersListIndex>();
+            var query = _documentSession.Query<User, UsersListIndex>();
 
-            var hasFirstParameter = false;
             if (userType != null)
             {
-                query = query.WhereEquals("Type", (int)userType);
-                hasFirstParameter = true;
+                query = query.Where(u => u.Type == userType);
             }
 
             if (name != null)
             {
-                if (hasFirstParameter)
-                {
-                    query = query.AndAlso();
-                }
-                else
-                {
-                    hasFirstParameter = true;
-                }
-                query = query.Where($"Name:*{name}*");
+                query = query.Where(u => u.Name.Contains(name));
             }
 
             if (email != null)
             {
-                if (hasFirstParameter)
-                {
-                    query = query.AndAlso();
-                }
-                query = query.WhereEquals("Email", email);
+                query = query.Where(u => u.Email == email);
             }
             return query.ToList();
         }

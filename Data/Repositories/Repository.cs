@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using BusinessEntities;
 using Common;
-using Raven.Abstractions.Data;
-using Raven.Client;
-using Raven.Client.Indexes;
+using Raven.Client.Documents;
+using Raven.Client.Documents.Indexes;
+using Raven.Client.Documents.Session;
+using Raven.Client.Documents.Queries;
 
 namespace Data.Repositories
 {
@@ -31,12 +32,17 @@ namespace Data.Repositories
 
         public T Get(Guid id)
         {
-            return _documentSession.Load<T>(id);
+            return _documentSession.Load<T>(id.ToString());
         }
 
-        protected void DeleteAll<TIndex>() where TIndex : AbstractIndexCreationTask<T>
+        protected void DeleteAll<TIndex>() where TIndex : AbstractIndexCreationTask, new()
         {
-            _documentSession.Advanced.DocumentStore.DatabaseCommands.DeleteByIndex(typeof(TIndex).Name, new IndexQuery());
+            var indexName = new TIndex().IndexName;
+
+            _documentSession.Advanced.DocumentStore.Operations.Send(new Raven.Client.Documents.Operations.DeleteByQueryOperation(
+                new IndexQuery { Query = "from index '" + indexName + "'"}, null));
+
+            _documentSession.SaveChanges();
         }
     }
 }
